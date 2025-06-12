@@ -13,7 +13,9 @@ async function getEarningsByUserId(req, res, next) {
         SuccessResponse.data = earnings;
         return res.status(200).json(SuccessResponse);
     } catch (error) {
-        console.error('Error retrieving earnings by user ID:', error);
+        if( error instanceof AppError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
         return next(error);
     }
 };
@@ -31,6 +33,9 @@ const getEarningsBySourceUserId = async (req, res, next) => {
 
         return res.status(200).json(SuccessResponse);
     } catch (error) {
+        if( error instanceof AppError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
         // console.error('Error retrieving earnings by source user ID:', error);
         return next(error);
     }
@@ -49,6 +54,10 @@ const getEarningsByPurchaseId = async (req, res, next) => {
 
         return res.status(200).json(SuccessResponse);
     } catch (error) {
+        if (error instanceof AppError) {
+            console.error('Error retrieving earnings by purchase ID:', error);
+            return res.status(error.statusCode).json({ message: error.message });
+        }
         return next(error);
     }
 };
@@ -65,7 +74,10 @@ const getTotalEarningsByUserId = async (req, res, next) => {
 
         return res.status(200).json(SuccessResponse);
     } catch (error) {
-        return next(error);
+        if (error instanceof AppError) {
+            throw  error;
+        }
+        throw new AppError('Error in calculating total earnings', 500);
     }
 };
 

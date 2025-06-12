@@ -16,12 +16,14 @@ const getEarningsByUserId = async (userId) => {
             where: { userId },
             order: [["createdAt", "DESC"]],
         });
-        // console.log("Earnings fetched for user:", userId, earnings);
         if (!earnings || earnings.length === 0) {
             throw new AppError("No earnings found for this user", 404);
         }
         return earnings;
     } catch (error) {
+        if (error instanceof AppError) {
+            throw error; 
+        }
         throw new AppError("Error fetching earnings for user", 500);
     }
 };

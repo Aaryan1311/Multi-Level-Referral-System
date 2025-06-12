@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { UserController }= require('../../controllers');
 const { userMiddleware } = require('../../middlewares');
+
+
 router.post(
   '/',
   userMiddleware.validateUserBody,
@@ -10,8 +12,15 @@ router.post(
   UserController.createUser
 );
 
-router.get('/:userId', UserController.getUser);
+router.get('/:userId', 
+  userMiddleware.validateUserIdParam,
+  UserController.getUser
+);
 
-router.get('/:userId/referrals', UserController.getUserWithReferrals);
+
+router.get('/:userId/referrals', 
+  userMiddleware.validateUserIdParam,
+  UserController.getUserWithReferrals
+);
 
 module.exports = router;

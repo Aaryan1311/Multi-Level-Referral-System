@@ -13,6 +13,9 @@ async function createUser(req, res) {
 
     return res.status(201).json(SuccessResponse);
   } catch (error) {
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     next(error);
   }
 };
@@ -31,25 +34,39 @@ async function getUser(req, res) {
 
     return res.status(200).json(SuccessResponse);
   } catch (error) {
-    next(error);
+    // console.error('Error fetching user:', error);
+    if( error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('Error fetching user: ' + error.message, 500);
   }
 };
 
-async function getUserWithReferrals(req, res) {
+async function getUserWithReferrals(req, res){
   try {
-    const { userId } = req.params;
+    // console.log(req.params);
+    const userId  = req.params.userId;
+    console.log('Fetching referrals for userId:', userId);
     const user = await userService.getUserWithReferrals(userId);
 
-    if (!user) {
-      throw new AppError('User not found', 404);
+    const referrals = user.Referrals || [];
+
+    if (referrals.length === 0) {
+      SuccessResponse.message = "No users referred by this user";
+      SuccessResponse.data = [];
+      return res.status(200).send(SuccessResponse);
     }
 
-    SuccessResponse.message = 'User with referrals retrieved successfully';
-    SuccessResponse.data = user;
-
+    SuccessResponse.message = "Referrals fetched successfully";
+    SuccessResponse.data = referrals;
     return res.status(200).json(SuccessResponse);
+
   } catch (error) {
-    next(error);
+    // console.error('Error in fetching referred user list:', error);
+    if( error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError('Error in fetching referraed user list: ' + error.message, 500);
   }
 };
 

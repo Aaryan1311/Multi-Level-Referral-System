@@ -43,6 +43,9 @@ const getTotalEarningsByUserId = async (userId) => {
         const totalEarnings = earnings.reduce((total, earning) => total + parseFloat(earning.amountEarned), 0);
         return totalEarnings;
     } catch (error) {
+        if (error instanceof AppError) {
+            throw error; 
+        }
         throw new AppError('Error calculating total earnings for user' , 500);
     }
 }

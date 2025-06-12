@@ -1,5 +1,5 @@
 const userRepository = require("../repositories/user.repository");
-const { AppError } = require("../utils/error/app-error");
+const AppError = require("../utils/error/app-error");
 
 const createUser = async ({ name, email, referrerId }) => {
   try {
@@ -18,6 +18,10 @@ const getUserById = async (id) => {
     }
     return user;
   } catch (error) {
+    // console.error("Error from service:", error);
+    if( error instanceof AppError) {
+      throw error; 
+    }
     throw new AppError("Error fetching user: " + error.message, 500);
   }
 };
@@ -30,10 +34,10 @@ const getUserWithReferrals = async (id) => {
     }
     return user;
   } catch (error) {
-    throw new AppError(
-      "Error fetching user with referrals: " + error.message,
-      500
-    );
+    if (error instanceof AppError) {
+      throw error;
+    }
+   throw new AppError('Error in fetching reffered user list', 500);
   }
 };
 
