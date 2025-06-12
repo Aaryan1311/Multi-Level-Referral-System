@@ -4,6 +4,7 @@ const apiRoutes = require('./routes');
 const { errorHandler } = require('./middlewares');
 const http = require('http');
 const path = require('path');
+const setupSwaggerDocs = require("./config/swagger");
 
 const app = express();
 
@@ -20,6 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', apiRoutes);
 
 app.use(errorHandler);
+
+setupSwaggerDocs(app); // This mounts /api-docs
 
 server.listen(ServerConfig.PORT, () => {
   console.log(`Server with WebSocket is running on port: ${ServerConfig.PORT}`);
