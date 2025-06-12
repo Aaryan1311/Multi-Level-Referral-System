@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket Test</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Referral Earnings Socket Test</h2>
+  <p id="status">Connecting...</p>
+  <ul id="messages"></ul>
+
+  <script>
+    const userId = '1'; // Change this to test with different users
+
+    const status = document.getElementById('status');
+    const messages = document.getElementById('messages');
+
+    // Request notification permission
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission().then(permission => {
+        if (permission !== "granted") {
+          alert("Please allow notifications to receive earning alerts.");
+        }
+      });
+    }
+
+    // Connect to socket server
+    const socket = io('http://localhost:3000', {
+      query: { userId }
+    });
+
+    socket.on('connect', () => {
+      console.log(`✅ Connected as user ${userId}`);
+      status.innerText = `✅ Connected as user ${userId}`;
+      socket.emit('register', userId); // Join room
+    });
+
+    socket.on('disconnect', () => {
+      console.log("❌ Disconnected");
+      status.innerText = '❌ Disconnected';
+    });
+
+    socket.on('earningUpdate', (data) => {
+      console.log('📥 Earning update received:', data);
+
+      // Show in browser list
+      const li = document.createElement('li');
+      li.textContent = `💰 ₹${data.amountEarned} from user ${data.sourceUserId} (Level ${data.level})`;
+      messages.appendChild(li);
+
+      // Show system notification
+      if (Notification.permission === "granted") {
+        new Notification("💸 New Referral Earning", {
+          body: `₹${data.amountEarned} from user ${data.sourceUserId} (Level ${data.level})`
+        });
+      } else {
+        console.log("🔕 Notification blocked by user.");
+      }
+    });
+  </script>
+</body>
+</html>

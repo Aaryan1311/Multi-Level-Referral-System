@@ -4,6 +4,8 @@ const purchaseRepository = require("../repositories/purchase.repository");
 const userRepository = require("../repositories/user.repository");
 const earningRepository = require("../repositories/earning.repository");
 const { message } = require("../utils/common/error-response");
+const { ServerConfig } = require("../config/");
+const { emitToUser } = require("../config/socket-server");
 
 const createPurchase = async({userId, amount }) => {
     const transaction = await Purchase.sequelize.transaction();
@@ -33,24 +35,43 @@ const createPurchase = async({userId, amount }) => {
 
         const earnings = [];
         if(level1) {
-           earnings.push(await earningRepository.createEarning({
+
+          const earning1 = await earningRepository.createEarning({
                 userId: level1.id,
                 sourceUserId: userId,
                 purchaseId: purchase.id,
                 level: 1,
                 amountEarned: amount * 0.05,
-            }, {transaction}));
-           }
+            }, {transaction});
+
+            earnings.push(earning1);
+
+            emitToUser(level1.id, {
+              level: 1,
+              amountEarned: +(amount*0.05).toFixed(2),
+              sourceUserId: userId,
+              purchaseId: purchase.id
+            });
+          }
 
            if(level2){
-            earnings.push(await earningRepository.createEarning({
+            const earning2 = await earningRepository.createEarning({
                 userId: level2.id,
                 sourceUserId: userId,
                 purchaseId: purchase.id,
                 level: 2,
                 amountEarned: amount * 0.01,
-            }, {transaction}));
-           }
+            }, {transaction});
+
+            earnings.push(earning2);
+
+            emitToUser(level2.id, {
+              level: 2,
+              amountEarned: +(amount*0.01).toFixed(2),
+              sourceUserId: userId,
+              purchaseId: purchase.id
+            });
+          }
 
         await transaction.commit();
         return {
